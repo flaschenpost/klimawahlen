@@ -1,0 +1,7 @@
+<?php
+$accesstoken='******************';
+$accesssecret='****';
+
+$APIKEY='***';
+$APISECRET='***';
+?>
