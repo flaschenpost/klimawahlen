@@ -2,7 +2,7 @@
 require "vendor/autoload.php";
 require "btok.txt";
 
-$BUCKET=3;
+$BUCKET=300;
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
@@ -18,8 +18,8 @@ function check_or_create_user($conn, $userdat){
   else{
     $insert = $conn->prepare("insert into tweep set id=?, is_blocked=0, handle=?, screenname=?");
     $insert->bind_param("sss",$userdat->id_str,$userdat->name, $userdat->screen_name);
-    if (!$stmt->execute()) {
-      echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    if (!$insert->execute()) {
+      echo "Execute failed: (" . $insert->errno . ") " . $insert->error;
     }
     return $userdat->id_str;
   }
@@ -61,7 +61,7 @@ while($hashrow = $result->fetch_assoc()) {
     $q['since_id'] = $hashrow['lastid'];
   }
   $statuses = $twi->get("search/tweets", $q);
-  $insert = $conn->prepare("INSERT INTO tweet (id, tweep, created_at, maintext,cronrun,complete,hashtag, thread, parent, son) VALUES (?,?,?,?,?,?,?,?,?,?)");
+  $insert = $conn->prepare("INSERT ignore INTO tweet (id, tweep, created_at, maintext,cronrun,complete,hashtag, thread, parent, son) VALUES (?,?,?,?,?,?,?,?,?,?)");
   
   $insert->bind_param("ssssssssss",$id_str, $userid, $created_at, $text, $cronid, $fulltext, $hashrow['id'], $thread, $reply_to, $son);
   $cnt = 0;
@@ -87,8 +87,8 @@ while($hashrow = $result->fetch_assoc()) {
       $reply_to=0;
     }
 
-    if (!$stmt->execute()) {
-      echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    if (!$insert->execute()) {
+      echo "Execute failed: (" . $insert->errno . ") " . $insert->error;
     }
   }
 }
@@ -98,6 +98,7 @@ while($hashrow = $result->fetch_assoc()) {
 // threads
 while ($refetch){
   $next_fetch = [];
+  sleep(70);
   foreach(array_chunk($refetch, 100) as $chunk){
     $sep="";
     $ids="";
@@ -109,7 +110,7 @@ while ($refetch){
     $statuses = $twi->get("statuses/lookup", ['id'=>$ids, 'tweet_mode'=>'extended']);
     print_r($statuses);
 
-    $insert = $conn->prepare("INSERT INTO tweet (id, tweep, created_at, maintext,cronrun,complete,hashtag, thread, parent, son) VALUES (?,?,?,?,?,?,?,?,?,?)");
+    $insert = $conn->prepare("INSERT ignore INTO tweet (id, tweep, created_at, maintext,cronrun,complete,hashtag, thread, parent, son) VALUES (?,?,?,?,?,?,?,?,?,?)");
 
     $insert->bind_param("ssssssssss",$id_str, $userid, $created_at, $text, $cronid, $fulltext, $hashrow['id'], $thread, $reply_to, $son);
 
@@ -131,8 +132,8 @@ while ($refetch){
       $thread=$son_data['main'];
       $son = $son_data['id'];
 
-      if (!$stmt->execute()) {
-        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+      if (!$insert->execute()) {
+        echo "Execute failed: (" . $insert->errno . ") " . $insert->error;
       }
       if($status->in_reply_to_status_id_str){
         $reply_to=$status->in_reply_to_status_id_str;
