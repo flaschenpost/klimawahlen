@@ -18,9 +18,16 @@ function check_or_create_user($conn, $userdat){
   else{
     $insert = $conn->prepare("insert into tweep set id=?, is_blocked=0, handle=?, screenname=?");
     $insert->bind_param("sss",$userdat->id_str,$userdat->name, $userdat->screen_name);
-    $insert->execute();
+    if (!$stmt->execute()) {
+      echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
     return $userdat->id_str;
   }
+}
+
+function get_date(s){
+    $date = strtotime($s);
+    return date("Y-m-d H:i:d",$date);
 }
 
 function save_tweet($conn, $status){
@@ -67,7 +74,7 @@ while($hashrow = $result->fetch_assoc()) {
     if(! $id_str){
       continue;
     }
-    $created_at=$status->created_at;
+    $created_at=get_date($status->created_at);
     $text = $status->full_text;
     $fulltext = json_encode($status);
     $userid = check_or_create_user($conn, $status->user);
@@ -79,7 +86,10 @@ while($hashrow = $result->fetch_assoc()) {
     else{
       $reply_to=0;
     }
-    $insert->execute();
+
+    if (!$stmt->execute()) {
+      echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
   }
 }
 
@@ -114,13 +124,16 @@ while ($refetch){
       }
       $son_data = $refetch[$id_str];
 
-      $created_at=$status->created_at;
+      $created_at=get_date($status->created_at);
       $text = $status->full_text;
       $fulltext = json_encode($status);
       $userid = check_or_create_user($conn, $status->user);
       $thread=$son_data['main'];
       $son = $son_data['id'];
-      $insert->execute();
+
+      if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+      }
       if($status->in_reply_to_status_id_str){
         $reply_to=$status->in_reply_to_status_id_str;
         $next_fetch[$reply_to] = ['main'=>$son_data['main'], 'id'=>$id_str, 'hash'=>$hashrow['id'], 'reply_to' => $reply_to];

@@ -32,7 +32,6 @@ do{
   $loopcount++;
   $q=['screen_name' => $mainuser,'cursor' => $next_cursor, 'include_user_entities'=>false, 'count'=>190];
   $resp = $twi->get("followers/list", $q);
-  print_r($resp);
   if(! $resp || ! $resp->users){
     sleep(70);
     $resp = $twi->get("followers/list", $q);
