@@ -25,7 +25,7 @@ function check_or_create_user($conn, $userdat){
   }
 }
 
-function get_date(s){
+function get_date($s){
     $date = strtotime($s);
     return date("Y-m-d H:i:d",$date);
 }
@@ -68,7 +68,7 @@ while($hashrow = $result->fetch_assoc()) {
   $son=0;
   foreach($statuses->statuses as $status){
     print("status $cnt\n");
-    print_r($status);
+    # print_r($status);
     $cnt++;
     $id_str = $status->id_str;
     if(! $id_str){
@@ -108,7 +108,7 @@ while ($refetch){
     }
     print_r($ids);
     $statuses = $twi->get("statuses/lookup", ['id'=>$ids, 'tweet_mode'=>'extended']);
-    print_r($statuses);
+    # print_r($statuses);
 
     $insert = $conn->prepare("INSERT ignore INTO tweet (id, tweep, created_at, maintext,cronrun,complete,hashtag, thread, parent, son) VALUES (?,?,?,?,?,?,?,?,?,?)");
 
@@ -117,7 +117,7 @@ while ($refetch){
     $cnt = 0;
     foreach($statuses as $status){
       print("status $cnt\n");
-      print_r($status);
+      # print_r($status);
       $cnt++;
       $id_str = $status->id_str;
       if(! $id_str){
@@ -140,7 +140,7 @@ while ($refetch){
         $next_fetch[$reply_to] = ['main'=>$son_data['main'], 'id'=>$id_str, 'hash'=>$hashrow['id'], 'reply_to' => $reply_to];
       }
     }
-    print_r($statuses);
+    # print_r($statuses);
   }
   $refetch=$next_fetch;
 }

@@ -2,7 +2,7 @@
 require "vendor/autoload.php";
 require "btok.txt";
 
-$BUCKET=3;
+$BUCKET=190;
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
@@ -30,7 +30,7 @@ do{
   fwrite(STDERR,$loopcount . " " . $next_cursor . "\n");
   fflush(STDERR);
   $loopcount++;
-  $q=['screen_name' => $mainuser,'cursor' => $next_cursor, 'include_user_entities'=>false, 'count'=>190];
+  $q=['screen_name' => $mainuser,'cursor' => $next_cursor, 'include_user_entities'=>false, 'count'=>$BUCKET];
   $resp = $twi->get("followers/list", $q);
   if(! $resp || ! $resp->users){
     sleep(70);
@@ -57,7 +57,9 @@ do{
     $friends_count = $u->friends_count;
     $date = strtotime($u->created_at);
     $since=(date("Y-m-d H:i:d",$date));
-    $insert->execute();
+    if (!$insert->execute()) {
+      echo "Execute failed: (" . $insert->errno . ") " . $insert->error;
+    }
   }
   sleep(70);
 }
